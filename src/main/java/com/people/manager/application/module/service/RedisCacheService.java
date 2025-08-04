@@ -176,7 +176,7 @@ public class RedisCacheService {
                                 }
 
                                 String cpfKey = "person_by_cpf_" + person.getCpf();
-                                connection.stringCommands().set(cpfKey.getBytes(), personKey.getBytes());
+                                connection.setCommands().sAdd(cpfKey.getBytes(), personKey.getBytes());
                             }
                         } finally {
                             connection.closePipeline();
@@ -221,14 +221,19 @@ public class RedisCacheService {
 
         try {
             connection.openPipeline();
+
             List<byte[]> byteKeys = keys.stream()
                     .map(k -> k.getBytes(StandardCharsets.UTF_8))
                     .toList();
 
-            List<byte[]> rawResults = connection.stringCommands()
-                    .mGet(byteKeys.toArray(new byte[0][]));
+            connection.stringCommands().mGet(byteKeys.toArray(new byte[0][]));
 
-            if (rawResults != null) {
+            List<Object> pipelineResults = connection.closePipeline();
+
+            if (!pipelineResults.isEmpty() && pipelineResults.get(0) instanceof List<?>) {
+                @SuppressWarnings("unchecked")
+                List<byte[]> rawResults = (List<byte[]>) pipelineResults.get(0);
+
                 for (byte[] data : rawResults) {
                     if (data != null) {
                         try {
@@ -241,7 +246,6 @@ public class RedisCacheService {
                 }
             }
         } finally {
-            connection.closePipeline();
             connection.close();
         }
 
