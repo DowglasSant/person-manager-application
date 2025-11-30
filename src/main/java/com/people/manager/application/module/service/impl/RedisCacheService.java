@@ -1,4 +1,4 @@
-package com.people.manager.application.module.service;
+package com.people.manager.application.module.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
